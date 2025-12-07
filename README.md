@@ -122,6 +122,17 @@ python coolchic/decode.py -i samples/bitstreams/a365_wd.cool -o a365_wd.ppm
 </picture>
 </div>
 
+# run my code
+
+安裝完後把要弄得圖片放到目錄裡接著執行．
+```bash
+./run_coolchic.sh 圖片名(不含副檔名)
+```
+
+可以在 results/my_experiments/圖片名/ 看到結果．
+
+
+
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
 [contributors-shield]: https://img.shields.io/github/contributors/Orange-OpenSource/Cool-Chic.svg?style=for-the-badge
