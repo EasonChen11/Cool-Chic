@@ -27,7 +27,8 @@ coolchic.egg-info/
 results/my_experiments/**
 !results/my_experiments/**/
 # !results/my_experiments/**/*.csv
-!results/my_experiments/**/*.png
+!results/my_experiments/**/rd_curve_comparison.png
+!results/my_experiments/**/rd_curve.png
 results/my_experiments/**/workdir/
 
 # other
