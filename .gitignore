@@ -26,6 +26,6 @@ coolchic.egg-info/
 # Ignore all files in results/my_experiments except CSV and PNG files
 results/my_experiments/**
 !results/my_experiments/**/
-!results/my_experiments/**/*.csv
+# !results/my_experiments/**/*.csv
 !results/my_experiments/**/*.png
 results/my_experiments/**/workdir/

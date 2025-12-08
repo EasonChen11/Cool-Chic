@@ -2,7 +2,7 @@
 
 # ================= 設定區 (Settings) =================
 # 這裡設定您想要跑 R-D Curve 的所有 Lambda 點
-BATCH_LAMBDAS=(0.1 0.03 0.01 0.003 0.001 0.0003)
+BATCH_LAMBDAS=(1.5 1.2 1.0 0.8 0.5 0.3 0.1 0.03 0.01 0.003 0.001 0.0003 0.0001 0.00003 0.00001)
 
 # 預設單次執行時使用的 Lambda
 DEFAULT_SINGLE_LAMBDA=0.01
@@ -131,7 +131,8 @@ if [ "$MODE" == "--batch" ]; then
     
     echo "📊 正在繪製圖表..."
     if [ -f "${TOOLS_DIR}/plot_rd.py" ]; then
-        python "${TOOLS_DIR}/plot_rd.py" "$CSV_FILE" "$IMG_NAME"
+        python "${TOOLS_DIR}/plot_rd.py" "$CSV_FILE" --log
+        python "${TOOLS_DIR}/plot_rd.py" "$CSV_FILE" --only-coolchic
     else
         echo "⚠️  找不到 ${TOOLS_DIR}/plot_rd.py，跳過繪圖"
     fi
