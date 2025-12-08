@@ -22,8 +22,6 @@ coolchic.egg-info/
 *.so
 # GitHub Settings: Keep workflows public, hide private instructions
 .github/*
-!.github/workflows/
-
 
 # Ignore all files in results/my_experiments except CSV and PNG files
 results/my_experiments/**
