@@ -1,18 +1,18 @@
-import matplotlib.pyplot as plt
+import argparse
 import csv
 import os
-import sys
-import argparse
+
+import matplotlib.pyplot as plt
 
 
 def read_csv_data(filepath):
-    """讀取 CSV 並回傳 (BPP, PSNR) 的排序列表"""
+    """Read CSV and return sorted list of (BPP, PSNR)"""
     bpps = []
     psnrs = []
 
     if not os.path.exists(filepath):
-        # 只有在真的試圖讀取時才報錯，這裡如果是被 disable 的話根本不會進來
-        # 但為了保持函式單純，這裡還是留著檢查
+        # Only report error when actually trying to read; if disabled, won't reach here
+        # But keep this check to maintain function simplicity
         return [], []
 
     try:
@@ -30,7 +30,7 @@ def read_csv_data(filepath):
         print(f"❌ Error reading {filepath}: {e}")
         return [], []
 
-    # 根據 BPP 排序，這樣畫出來的線才不會亂跑
+    # Sort by BPP so the plotted line doesn't jump around
     data = sorted(zip(bpps, psnrs))
     if not data:
         return [], []
@@ -39,7 +39,7 @@ def read_csv_data(filepath):
 
 
 def print_stats(name, bpps, psnrs):
-    """在終端機印出數據範圍，方便比較"""
+    """Print data range in terminal for easy comparison"""
     if not bpps:
         return
     print(
@@ -48,7 +48,7 @@ def print_stats(name, bpps, psnrs):
 
 
 def plot_rd_curves(coolchic_csv_path, use_log_scale=False, show_baselines=True):
-    # 推斷目錄路徑與圖片名稱
+    # Infer directory path and image name
     target_dir = os.path.dirname(coolchic_csv_path)
     img_name = os.path.basename(target_dir)
 
@@ -58,14 +58,14 @@ def plot_rd_curves(coolchic_csv_path, use_log_scale=False, show_baselines=True):
     print(f"   {'Method':<25} | {'BPP Range':<20} | {'PSNR Range'}")
     print("-" * 60)
 
-    # 定義檔案路徑
+    # Define file paths
     jpeg_csv = os.path.join(target_dir, f"{img_name}_jpeg.csv")
     webp_csv = os.path.join(target_dir, f"{img_name}_webp.csv")
 
-    # 設定畫布
+    # Setup canvas
     plt.figure(figsize=(10, 7))
 
-    # 1. 繪製 Cool-chic
+    # 1. Plot Cool-chic
     cc_bpp, cc_psnr = read_csv_data(coolchic_csv_path)
     if cc_bpp:
         plt.plot(
@@ -79,10 +79,10 @@ def plot_rd_curves(coolchic_csv_path, use_log_scale=False, show_baselines=True):
         )
         print_stats("Cool-chic", cc_bpp, cc_psnr)
 
-    # 只有在 show_baselines 為 True 時才嘗試讀取與繪製基準線
+    # Only try to read and plot baselines when show_baselines is True
     if show_baselines:
-        # 2. 繪製 JPEG
-        # 先檢查檔案是否存在，避免 read_csv_data 印出檔案找不到的警告 (如果使用者根本沒跑 benchmark)
+        # 2. Plot JPEG
+        # Check if file exists first to avoid file not found warnings (if user hasn't run benchmark)
         if os.path.exists(jpeg_csv):
             j_bpp, j_psnr = read_csv_data(jpeg_csv)
             if j_bpp:
@@ -96,8 +96,8 @@ def plot_rd_curves(coolchic_csv_path, use_log_scale=False, show_baselines=True):
                     label="JPEG (Baseline)",
                 )
                 print_stats("JPEG", j_bpp, j_psnr)
-        
-        # 3. 繪製 WebP
+
+        # 3. Plot WebP
         if os.path.exists(webp_csv):
             w_bpp, w_psnr = read_csv_data(webp_csv)
             if w_bpp:
@@ -116,30 +116,30 @@ def plot_rd_curves(coolchic_csv_path, use_log_scale=False, show_baselines=True):
 
     print("-" * 60)
 
-    # 設定圖表裝飾
+    # Setup chart decorations
     plt.title(f"Rate-Distortion Curve: {img_name}")
     plt.xlabel("Bitrate (bits per pixel)")
     plt.ylabel("PSNR (dB)")
 
-    # 開啟次要網格，方便觀察
+    # Enable minor grid for easier observation
     plt.minorticks_on()
     plt.grid(True, which="major", linestyle="-", alpha=0.6)
     plt.grid(True, which="minor", linestyle=":", alpha=0.3)
 
     plt.legend()
 
-    # 如果使用者要求 Log Scale，或數據真的太偏左，可以用 log
+    # If user requests Log Scale, or data is too skewed left, use log
     if use_log_scale:
         plt.xscale("log")
         plt.xlabel("Bitrate (bits per pixel) - Log Scale")
     else:
         plt.xlim(left=0)
 
-    # 儲存圖片
-    # 根據是否顯示基準線來決定檔名
+    # Save image
+    # Decide filename based on whether baselines are shown
     filename = "rd_curve_comparison.png" if show_baselines else "rd_curve.png"
     output_png = os.path.join(target_dir, filename)
-    
+
     plt.savefig(output_png, dpi=300)
     print(f"✅ Plot saved to: {output_png}")
 
@@ -154,7 +154,7 @@ if __name__ == "__main__":
         action="store_true",
         help="Use log scale for X-axis (useful for low BPP)",
     )
-    # 新增參數：只畫 Cool-chic，不畫其他比較
+    # New parameter: only plot Cool-chic, ignore other comparisons
     parser.add_argument(
         "--only-coolchic",
         action="store_true",
@@ -163,5 +163,5 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    # 將參數傳入函式，show_baselines 邏輯為：如果沒有指定 only-coolchic，則預設為 True
+    # Pass arguments to function, show_baselines logic: default True unless only-coolchic is specified
     plot_rd_curves(args.csv_path, args.log, show_baselines=not args.only_coolchic)

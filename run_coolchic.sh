@@ -1,50 +1,50 @@
 #!/bin/bash
 
-# ================= 設定區 (Settings) =================
-# 加入 PYTHONPATH 確保 Python 能正確引用當前目錄的模組
+# ================= Settings =================
+# Add PYTHONPATH to ensure Python can correctly reference modules in current directory
 export PYTHONPATH=$PYTHONPATH:.
 
-# 這裡設定您想要跑 R-D Curve 的所有 Lambda 點
+# Set all Lambda points for R-D Curve testing
 BATCH_LAMBDAS=(0.1 0.03 0.01 0.003 0.001 0.0003 0.0001 0.00003)
 
-# 預設單次執行時使用的 Lambda
+# Default Lambda for single execution
 DEFAULT_SINGLE_LAMBDA=0.01
 
-# 設定工具資料夾名稱
+# Set tools directory name
 TOOLS_DIR="my_tools"
 
-# 設定檔路徑 (強制絕對路徑)
+# Configuration file paths (forced absolute paths)
 ENC_CFG="$(pwd)/cfg/enc/intra/fast_10k.cfg"
 DEC_CFG="$(pwd)/cfg/dec/intra/mop.cfg"
 
 # ====================================================
 
-# 1. 基本檢查：至少要有一個參數 (圖片名稱)
+# 1. Basic check: at least one parameter (image name) required
 if [ -z "$1" ]; then
-    echo "❌ 用法錯誤！"
-    echo "   基本用法: ./run_coolchic.sh <圖片名稱> [參數]"
-    echo "   範例:"
-    echo "     單次執行: ./run_coolchic.sh lena"
-    echo "     批量測試: ./run_coolchic.sh lena --batch"
-    echo "     啟用 Wasserstein: ./run_coolchic.sh lena --wasserstein"
-    echo "     混合使用: ./run_coolchic.sh lena --batch --wasserstein"
+    echo "❌ Usage error!"
+    echo "   Basic usage: ./run_coolchic.sh <image_name> [parameters]"
+    echo "   Examples:"
+    echo "     Single execution: ./run_coolchic.sh lena"
+    echo "     Batch testing: ./run_coolchic.sh lena --batch"
+    echo "     Enable Wasserstein: ./run_coolchic.sh lena --wasserstein"
+    echo "     Mixed usage: ./run_coolchic.sh lena --batch --wasserstein"
     exit 1
 fi
 
-# 取得圖片名稱，並將其從參數列表中移除 (shift)
+# Get image name and remove it from parameter list (shift)
 IMG_NAME=$1
 shift 
 
-# 定義輸入檔案路徑
+# Define input file path
 INPUT_FILE="$(pwd)/${IMG_NAME}.png"
 if [ ! -f "$INPUT_FILE" ]; then
-    echo "❌ 找不到圖片: $INPUT_FILE"
+    echo "❌ Image not found: $INPUT_FILE"
     exit 1
 fi
 
-# 2. 進階參數解析 (解決順序不固定問題)
-MODE="single"           # 預設模式
-USE_WASSERSTEIN=false   # 預設不使用 Wasserstein
+# 2. Advanced parameter parsing (resolve order flexibility issue)
+MODE="single"           # Default mode
+USE_WASSERSTEIN=false   # Default: do not use Wasserstein
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
@@ -55,26 +55,26 @@ while [[ "$#" -gt 0 ]]; do
             USE_WASSERSTEIN=true
             ;;
         *)
-            echo "⚠️  忽略未知參數: $1"
+            echo "⚠️  Ignoring unknown parameter: $1"
             ;;
     esac
-    shift # 移除已處理的參數，繼續處理下一個
+    shift # Remove processed parameter, continue to next
 done
 
-# 3. 根據參數設定路徑與 Flag
+# 3. Setup path and flags based on parameters
 if [ "$USE_WASSERSTEIN" = true ]; then
-    echo "🌊 啟用 Wasserstein Metric 模式"
-    # 資料夾名稱加上後綴，區分實驗結果
+    echo "🌊 Enabling Wasserstein Metric mode"
+    # Add suffix to folder name to distinguish experiment results
     BASE_DIR="$(pwd)/results/my_experiments/${IMG_NAME}_wasserstein"
-    # Python 腳本需要的參數
+    # Parameter required by Python script
     TUNE_ARG="--tune=wasserstein"
 else
-    echo "📉 使用預設 MSE Metric 模式"
+    echo "📉 Using default MSE Metric mode"
     BASE_DIR="$(pwd)/results/my_experiments/${IMG_NAME}"
     TUNE_ARG=""
 fi
 
-# ================= 定義核心流程函式 =================
+# ================= Define Core Pipeline Function =================
 run_pipeline() {
     local L_VAL=$1
     
@@ -88,7 +88,7 @@ run_pipeline() {
     echo "⚙️  Processing ${IMG_NAME} (Lambda = ${L_VAL}) ..."
     
     # 1. Encoding
-    # 注意：這裡加上了 $TUNE_ARG 變數
+    # Note: Added $TUNE_ARG variable here
     python coolchic/encode.py \
         --input="$INPUT_FILE" \
         --output="${RESULT_DIR}/${IMG_NAME}.bin" \
@@ -98,11 +98,11 @@ run_pipeline() {
         --lmbda="$L_VAL" \
         $TUNE_ARG > "${RESULT_DIR}/encoder.log" 2>&1
 
-    # 🛑 防呆檢查
+    # 🛑 Error checking
     if [ ! -f "${RESULT_DIR}/${IMG_NAME}.bin" ]; then
-        echo "❌ 編碼失敗！找不到 .bin 檔案。"
-        echo "⚠️  請檢查詳細錯誤日誌: ${RESULT_DIR}/encoder.log"
-        echo "--- 錯誤日誌末尾 ---"
+        echo "❌ Encoding failed! Cannot find .bin file."
+        echo "⚠️  Please check detailed error log: ${RESULT_DIR}/encoder.log"
+        echo "--- End of error log ---"
         tail -n 5 "${RESULT_DIR}/encoder.log"
         echo "-------------------"
         return 1
@@ -123,7 +123,7 @@ run_pipeline() {
         local PSNR_OUTPUT=$(python "${TOOLS_DIR}/calc_metrics.py" "$INPUT_FILE" "${RESULT_DIR}/${IMG_NAME}_decoded.ppm")
         local PSNR=$(echo "$PSNR_OUTPUT" | grep "PSNR" | awk '{print $3}')
     else
-        echo "⚠️  找不到 ${TOOLS_DIR}/calc_metrics.py，無法計算 PSNR"
+        echo "⚠️  Cannot find ${TOOLS_DIR}/calc_metrics.py, unable to calculate PSNR"
         local PSNR="0"
     fi
 
@@ -131,16 +131,16 @@ run_pipeline() {
     echo "${L_VAL},${BPP},${PSNR}"
 }
 
-# ================= 主程式邏輯 =================
+# ================= Main Program Logic =================
 
 if [ "$MODE" == "--batch" ]; then
-    # --- Batch 模式 ---
+    # --- Batch Mode ---
     CSV_DIR="${BASE_DIR}"
     mkdir -p "$CSV_DIR"
     CSV_FILE="${CSV_DIR}/rd_curve.csv"
     
-    echo "🚀 啟動 Batch 模式: 將測試 ${#BATCH_LAMBDAS[@]} 個點"
-    echo "📂 數據儲存於: $CSV_DIR"
+    echo "🚀 Starting Batch mode: Testing ${#BATCH_LAMBDAS[@]} points"
+    echo "📂 Data saved to: $CSV_DIR"
     
     echo "Lambda,BPP,PSNR" > "$CSV_FILE"
     
@@ -149,32 +149,32 @@ if [ "$MODE" == "--batch" ]; then
         if [[ "$DATA" == *","* ]]; then
             echo "$DATA" >> "$CSV_FILE"
         else
-            echo "⚠️  Lambda=${lam} 失敗，跳過記錄。"
+            echo "⚠️  Lambda=${lam} failed, skipping record."
         fi
     done
     
-    echo "📊 正在繪製圖表..."
+    echo "📊 Generating plots..."
     if [ -f "${TOOLS_DIR}/plot_rd.py" ]; then
-        # 自動繪製 Log Scale 版本以觀察低流量區間
+        # Auto-generate Log Scale version to observe low bitrate region
         python "${TOOLS_DIR}/plot_rd.py" "$CSV_FILE" --log
-        # 自動繪製僅包含 Cool-chic 的版本
+        # Auto-generate version with only Cool-chic
         python "${TOOLS_DIR}/plot_rd.py" "$CSV_FILE" --only-coolchic
     else
-        echo "⚠️  找不到 ${TOOLS_DIR}/plot_rd.py，跳過繪圖"
+        echo "⚠️  Cannot find ${TOOLS_DIR}/plot_rd.py, skipping plotting"
     fi
-    echo "🎉 Batch 完成！請查看 $CSV_DIR"
+    echo "🎉 Batch complete! Please check $CSV_DIR"
 
 else
-    # --- Single 模式 ---
-    echo "🚀 啟動 Single 模式 (預設 Lambda = $DEFAULT_SINGLE_LAMBDA)"
+    # --- Single Mode ---
+    echo "🚀 Starting Single mode (default Lambda = $DEFAULT_SINGLE_LAMBDA)"
     
     run_pipeline $DEFAULT_SINGLE_LAMBDA
     
     TARGET_DIR="${BASE_DIR}/L${DEFAULT_SINGLE_LAMBDA}"
     if [ -f "${TARGET_DIR}/${IMG_NAME}_decoded.ppm" ]; then
         python -c "from PIL import Image; Image.open('${TARGET_DIR}/${IMG_NAME}_decoded.ppm').save('${TARGET_DIR}/${IMG_NAME}_decoded.png')"
-        echo "🖼️  已產生預覽圖: ${TARGET_DIR}/${IMG_NAME}_decoded.png"
+        echo "🖼️  Preview image generated: ${TARGET_DIR}/${IMG_NAME}_decoded.png"
     else
-        echo "⚠️  解碼失敗，無法產生預覽圖。"
+        echo "⚠️  Decoding failed, unable to generate preview image."
     fi
 fi

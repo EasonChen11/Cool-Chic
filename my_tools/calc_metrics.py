@@ -5,23 +5,23 @@ from PIL import Image
 
 
 def calculate_psnr(img1, img2):
-    # 確保兩張圖尺寸一樣
+    # Ensure both images have the same size
     if img1.size != img2.size:
         print(f"Error: Image sizes do not match! {img1.size} vs {img2.size}")
         return 0
 
-    # 轉成 numpy array 並轉為 float 計算，避免溢位
+    # Convert to numpy array and use float to avoid overflow
     a = np.array(img1).astype(np.float64)
     b = np.array(img2).astype(np.float64)
 
-    # 計算 MSE (Mean Squared Error)
+    # Calculate MSE (Mean Squared Error)
     mse = np.mean((a - b) ** 2)
 
     if mse == 0:
-        return float("inf")  # 兩張圖完全一樣
+        return float("inf")  # Images are identical
 
-    # 計算 PSNR
-    # 255.0 是 8-bit 影像的最大值
+    # Calculate PSNR
+    # 255.0 is the maximum value for 8-bit images
     psnr = 10 * np.log10((255.0**2) / mse)
     return psnr
 
@@ -35,7 +35,7 @@ if __name__ == "__main__":
     dec_path = sys.argv[2]
 
     try:
-        # PIL (Pillow) 可以自動處理 png 和 ppm 的格式差異
+        # PIL (Pillow) can automatically handle png and ppm format differences
         img_orig = Image.open(orig_path).convert("RGB")
         img_dec = Image.open(dec_path).convert("RGB")
 
