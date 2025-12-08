@@ -29,3 +29,6 @@ results/my_experiments/**
 # !results/my_experiments/**/*.csv
 !results/my_experiments/**/*.png
 results/my_experiments/**/workdir/
+
+# other
+improve.md
