@@ -124,23 +124,52 @@ cp /path/to/your/image.png ./
 
 ### 輔助工具 (my_tools/)
 
+#### 1. calc_metrics.py - PSNR 計算工具
 ```bash
-# 計算 PSNR
-python my_tools/calc_metrics.py <original> <decoded>
-
-# 繪製單一 R-D 曲線
-python my_tools/plot_rd.py <csv_file> [--log] [--only-coolchic]
-
-# 繪製綜合比較 R-D 曲線 (MSE + Wasserstein + Baselines)
-python my_tools/plot_rd_combin.py <csv_file> [--log] [--no-baselines]
-
-# Baseline 比較 (JPEG, WebP, HEVC/H.265)
-python my_tools/benchmark_baseline.py --img <image> --out <output_dir>
+python my_tools/calc_metrics.py <original_image> <decoded_image>
 ```
+- 計算兩張圖片間的 PSNR (Peak Signal-to-Noise Ratio)
+- 支援 PNG 和 PPM 格式自動轉換
+- 輸出詳細的評估結果
 
-**新增功能說明**：
-- `plot_rd_combin.py`: 自動整合 MSE 和 Wasserstein 模式的結果，同時顯示 JPEG、WebP 和 HEVC 基準線
-- `benchmark_baseline.py`: 新增 HEVC/H.265 (Intra) 編碼測試，需要 ffmpeg 支援
+#### 2. plot_rd.py - 單一 R-D 曲線繪製
+```bash
+python my_tools/plot_rd.py <csv_file> [--log] [--only-coolchic]
+```
+- 繪製單一實驗的 Rate-Distortion 曲線
+- 自動讀取同目錄下的 baseline 數據 (JPEG, WebP, HEVC)
+- 支援對數尺度顯示 (`--log`)
+- 可選擇僅顯示 Cool-chic 結果 (`--only-coolchic`)
+
+#### 3. plot_rd_combin.py - 綜合比較視覺化
+```bash
+python my_tools/plot_rd_combin.py <mse_csv_file> [--log] [--no-baselines]
+```
+- **自動整合 MSE 和 Wasserstein 模式**：輸入 MSE 的 CSV，自動尋找對應的 Wasserstein 結果
+- 在同一張圖上顯示：
+  - Cool-chic (MSE) - 藍色實線，強調保真度
+  - Cool-chic (Wasserstein) - 紫色實線，強調感知品質
+  - HEVC/H.265 (Intra) - 紅色點劃線
+  - WebP - 綠色點線
+  - JPEG - 橘色虛線
+- 支援隱藏 baseline (`--no-baselines`)
+- 自動生成 `rd_curve_combined.png`
+
+#### 4. benchmark_baseline.py - 傳統編碼器基準測試
+```bash
+python my_tools/benchmark_baseline.py <image> --out <output_dir>
+```
+- **JPEG 測試**：品質參數 10-95 (10 個測試點)
+- **WebP 測試**：品質參數 10-95 (10 個測試點)
+- **HEVC/H.265 (Intra) 測試**：QP 值 12-51 (9 個測試點)
+  - 需要系統安裝 FFmpeg
+  - 使用 libx265 編碼器
+  - 自動檢測 FFmpeg，若不存在則跳過 HEVC 測試
+- **自動保存重建圖片**：
+  - `recon_jpeg/` - JPEG 重建圖片
+  - `recon_webp/` - WebP 重建圖片
+  - `recon_hevc/` - HEVC 重建圖片
+- 輸出 CSV 格式的 R-D 數據供後續繪圖使用
 
 ## 輸出結果
 
@@ -216,27 +245,44 @@ A: `pip install Pillow matplotlib numpy`
 - 支援單次/批量執行模式
 - 自動計算 BPP 與 PSNR
 - 整合 Wasserstein 模式切換
-- 錯誤處理與日誌記錄
-- 英文化介面與訊息
+- 完整的錯誤處理與日誌記錄
+- 全英文化介面與訊息輸出
 
-### 2. 評估工具 (my_tools/)
-- **calc_metrics.py**: PSNR 計算工具
-- **plot_rd.py**: 單一模式 R-D 曲線繪製
-- **plot_rd_combin.py**: 綜合比較視覺化（新增）
-  - 自動整合 MSE 和 Wasserstein 結果
-  - 支援多種基準編碼器比較
-  - 專業化圖表呈現
-- **benchmark_baseline.py**: 基準編碼器測試
-  - JPEG 壓縮測試
-  - WebP 壓縮測試
-  - HEVC/H.265 (Intra) 測試（新增）
-  - 自動保存重建圖片
+### 2. 評估工具集 (my_tools/)
 
-### 3. 實驗管理
-- 自動化目錄結構
-- CSV 數據匯出
-- 多層次結果視覺化
-- 完整程式碼英文化
+#### calc_metrics.py
+- PSNR 精確計算
+- 自動處理不同圖片格式 (PNG/PPM)
+- 詳細的評估報告輸出
+
+#### plot_rd.py
+- 單一實驗 R-D 曲線繪製
+- 自動載入 JPEG/WebP/HEVC 基準數據
+- 支援對數尺度和純 Cool-chic 模式
+- 高品質圖表輸出 (300 DPI)
+
+#### plot_rd_combin.py
+- **智能路徑推測**：輸入 MSE CSV，自動尋找 Wasserstein 對應路徑
+- **多模式整合**：同時呈現 MSE (保真度) 和 Wasserstein (感知品質)
+- **全面基準比較**：整合 HEVC、WebP、JPEG 三種傳統編碼器
+- **專業視覺化**：色彩編碼、線型區分、自動圖例定位
+- 適合學術報告與論文使用的高品質圖表
+
+#### benchmark_baseline.py
+- **JPEG 基準測試**：10 個品質級別完整測試
+- **WebP 基準測試**：10 個品質級別完整測試
+- **HEVC/H.265 基準測試**（新增）：
+  - 9 個 QP 值 (12-51) 覆蓋完整率失真範圍
+  - 使用 FFmpeg + libx265 編碼器
+  - Intra-only 模式確保公平比較
+  - 自動檢測 FFmpeg 可用性
+- **重建圖片保存**：所有編碼器的解碼圖片自動保存至分類資料夾
+- **CSV 數據輸出**：統一格式方便後續分析
+
+### 3. 實驗管理系統
+- 自動化目錄結構生成
+- 標準化 CSV 數據格式
+- 多層次結果視覺化（單一/綜合）
 
 ## 參考資料
 
