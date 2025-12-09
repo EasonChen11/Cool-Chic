@@ -17,14 +17,15 @@
 - 低複雜度神經網路編碼器
 - 支援 MSE 與 Wasserstein 距離度量
 - 自動化批量實驗與 R-D 曲線生成
-- 整合傳統編碼器效能比較
+- 整合傳統編碼器效能比較 (JPEG, WebP, HEVC/H.265)
+- 綜合比較視覺化工具
 
 ## 系統需求
 
 - Linux (Ubuntu 20.04+)
 - Python 3.10
 - Bash shell
-- 必要套件: build-essential, python3.10-dev, pip, g++, bc
+- 必要套件: build-essential, python3.10-dev, pip, g++, bc, ffmpeg
 
 ## 安裝步驟
 
@@ -42,7 +43,7 @@ sudo apt update
 sudo apt install -y software-properties-common
 sudo add-apt-repository -y ppa:deadsnakes/ppa
 sudo apt update
-sudo apt install -y python3.10 python3.10-dev python3.10-venv build-essential g++ git bc
+sudo apt install -y python3.10 python3.10-dev python3.10-venv build-essential g++ git bc ffmpeg
 ```
 
 2. 下載並進入專案目錄
@@ -127,12 +128,19 @@ cp /path/to/your/image.png ./
 # 計算 PSNR
 python my_tools/calc_metrics.py <original> <decoded>
 
-# 繪製 R-D 曲線
+# 繪製單一 R-D 曲線
 python my_tools/plot_rd.py <csv_file> [--log] [--only-coolchic]
 
-# Baseline 比較 (JPEG, JPEG2000, WebP)
+# 繪製綜合比較 R-D 曲線 (MSE + Wasserstein + Baselines)
+python my_tools/plot_rd_combin.py <csv_file> [--log] [--no-baselines]
+
+# Baseline 比較 (JPEG, WebP, HEVC/H.265)
 python my_tools/benchmark_baseline.py --img <image> --out <output_dir>
 ```
+
+**新增功能說明**：
+- `plot_rd_combin.py`: 自動整合 MSE 和 Wasserstein 模式的結果，同時顯示 JPEG、WebP 和 HEVC 基準線
+- `benchmark_baseline.py`: 新增 HEVC/H.265 (Intra) 編碼測試，需要 ffmpeg 支援
 
 ## 輸出結果
 
@@ -140,12 +148,22 @@ python my_tools/benchmark_baseline.py --img <image> --out <output_dir>
 
 ```
 results/my_experiments/<圖片名稱>/
-├── L<lambda>/          # 各 Lambda 值結果
-│   ├── *.bin           # 壓縮檔
-│   ├── *_decoded.png   # 解碼圖
-│   └── encoder.log     # 編碼日誌
-├── rd_curve.csv        # R-D 數據
-└── rd_curve.png        # R-D 曲線圖
+├── L<lambda>/              # 各 Lambda 值結果
+│   ├── *.bin               # 壓縮檔
+│   ├── *_decoded.png       # 解碼圖
+│   └── encoder.log         # 編碼日誌
+├── rd_curve.csv            # R-D 數據 (MSE)
+├── rd_curve.png            # R-D 曲線圖
+├── rd_curve_combined.png   # 綜合比較圖 (MSE + Wasserstein + Baselines)
+├── *_jpeg.csv              # JPEG 測試數據
+├── *_webp.csv              # WebP 測試數據
+├── *_hevc.csv              # HEVC 測試數據
+└── recon_*/                # 各編碼器重建圖片
+
+results/my_experiments/<圖片名稱>_wasserstein/
+├── L<lambda>/              # Wasserstein 模式結果
+├── rd_curve.csv            # R-D 數據 (Wasserstein)
+└── rd_curve.png            # R-D 曲線圖
 ```
 
 ### R-D 數據格式
@@ -197,18 +215,28 @@ A: `pip install Pillow matplotlib numpy`
 ### 1. 自動化腳本 (run_coolchic.sh)
 - 支援單次/批量執行模式
 - 自動計算 BPP 與 PSNR
-- 整合 Wasserstein 模式
+- 整合 Wasserstein 模式切換
 - 錯誤處理與日誌記錄
+- 英文化介面與訊息
 
 ### 2. 評估工具 (my_tools/)
-- PSNR/SSIM 計算
-- R-D 曲線視覺化
-- Baseline 編碼器比較
+- **calc_metrics.py**: PSNR 計算工具
+- **plot_rd.py**: 單一模式 R-D 曲線繪製
+- **plot_rd_combin.py**: 綜合比較視覺化（新增）
+  - 自動整合 MSE 和 Wasserstein 結果
+  - 支援多種基準編碼器比較
+  - 專業化圖表呈現
+- **benchmark_baseline.py**: 基準編碼器測試
+  - JPEG 壓縮測試
+  - WebP 壓縮測試
+  - HEVC/H.265 (Intra) 測試（新增）
+  - 自動保存重建圖片
 
 ### 3. 實驗管理
 - 自動化目錄結構
 - CSV 數據匯出
-- 結果視覺化
+- 多層次結果視覺化
+- 完整程式碼英文化
 
 ## 參考資料
 
