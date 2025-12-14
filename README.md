@@ -2,11 +2,13 @@
 
 ## 專題資訊
 
-**專題名稱**: Cool-Chic 神經網路圖像壓縮實驗
+**Topic**: Cool-Chic 神經網路圖像壓縮實驗
+
+**members** :  314552048 蔡旺霖, 314552010 陳毅軒,	314581046 蘇靖淵,	313605029 施至遠
 
 **基礎框架**: Cool-Chic 4.2.0 (Orange-OpenSource)
 
-**主要貢獻**: 實作自動化實驗流程與效能評估工具，並評估在更高的bpp下各方法的PSNR表現。
+**貢獻**: 實作自動化實驗流程與效能評估工具，並評估在更高的bpp下各方法的PSNR表現。
 
 > 本專案為 NYCU 視訊壓縮課程期末專題，基於 [Orange-OpenSource/Cool-Chic](https://github.com/Orange-OpenSource/Cool-Chic) 進行延伸開發。
 > 原版官方說明文件請參閱：[README_official.md](README_official.md)
@@ -54,6 +56,13 @@ sudo apt install -y python3.10 python3.10-dev python3.10-venv build-essential g+
 ```bash
 git clone https://github.com/EasonChen11/Cool-Chic.git
 cd Cool-Chic
+```
+
+or use source code you have already downloaded.
+
+```bash
+unzip 314552048_314552010_314581046_313605029_final_source_code.zip -d video_compression_final
+cd video_compression_final
 ```
 
 3. 建立並啟動虛擬環境
@@ -238,7 +247,7 @@ A: `pip install Pillow matplotlib numpy`
 3. CABAC 熵編碼
 4. 解碼恢復圖像
 
-### Wasserstein 距離
+### Wasserstein
 
 感知導向的失真度量，相比 MSE 更符合人眼視覺感知。
 
