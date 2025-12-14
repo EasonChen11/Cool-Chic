@@ -33,6 +33,4 @@ results/my_experiments/**
 results/my_experiments/**/workdir/
 
 # other
-improve.md
 !lena.png
-!314552048_314552010_314581046_313605029_final_source_code.zip
