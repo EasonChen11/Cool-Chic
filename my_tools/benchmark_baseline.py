@@ -38,7 +38,6 @@ def run_hevc_benchmark(image_path, output_dir, width, height):
     hevc_csv = os.path.join(output_dir, f"{img_name}_hevc.csv")
     print(f"Testing HEVC (H.265) for {img_name}...")
 
-    # 用來存放解碼圖片的資料夾
     recon_dir = os.path.join(output_dir, "recon_hevc")
     os.makedirs(recon_dir, exist_ok=True)
 
@@ -49,7 +48,6 @@ def run_hevc_benchmark(image_path, output_dir, width, height):
         writer = csv.writer(f)
         writer.writerow(["QP", "BPP", "PSNR"])
 
-        # 加入更廣的 QP 範圍
         qps = [12, 17, 22, 27, 32, 37, 42, 47, 51]
 
         for qp in qps:
@@ -89,8 +87,6 @@ def run_hevc_benchmark(image_path, output_dir, width, height):
 
             writer.writerow([qp, bpp, psnr])
 
-            # === 修改點：保存解碼後的圖片 ===
-            # 檔名格式: 圖片名_hevc_qp數值.png
             save_path = os.path.join(recon_dir, f"{img_name}_hevc_qp{qp}.png")
             shutil.copy(temp_decoded, save_path)
             # print(f"  Saved reconstruction: {save_path}")
@@ -113,7 +109,7 @@ def run_benchmark(image_path, output_dir):
 
     # === 1. JPEG Benchmark ===
     jpeg_csv = os.path.join(output_dir, f"{img_name}_jpeg.csv")
-    recon_jpeg_dir = os.path.join(output_dir, "recon_jpeg")  # 建立 JPEG 圖片資料夾
+    recon_jpeg_dir = os.path.join(output_dir, "recon_jpeg")
     os.makedirs(recon_jpeg_dir, exist_ok=True)
 
     print(f"Testing JPEG for {img_name}...")
@@ -132,14 +128,13 @@ def run_benchmark(image_path, output_dir):
             psnr = calculate_psnr(img, decoded)
             writer.writerow([q, bpp, psnr])
 
-            # === 修改點：保存 JPEG 圖片 ===
             decoded.save(os.path.join(recon_jpeg_dir, f"{img_name}_jpeg_q{q}.png"))
 
     print(f"Saved JPEG results to {jpeg_csv}")
 
     # === 2. WebP Benchmark ===
     webp_csv = os.path.join(output_dir, f"{img_name}_webp.csv")
-    recon_webp_dir = os.path.join(output_dir, "recon_webp")  # 建立 WebP 圖片資料夾
+    recon_webp_dir = os.path.join(output_dir, "recon_webp")
     os.makedirs(recon_webp_dir, exist_ok=True)
 
     print(f"Testing WebP for {img_name}...")
@@ -158,7 +153,6 @@ def run_benchmark(image_path, output_dir):
             psnr = calculate_psnr(img, decoded)
             writer.writerow([q, bpp, psnr])
 
-            # === 修改點：保存 WebP 圖片 ===
             decoded.save(os.path.join(recon_webp_dir, f"{img_name}_webp_q{q}.png"))
 
     print(f"Saved WebP results to {webp_csv}")
