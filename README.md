@@ -94,7 +94,7 @@ python -m test.sanity_check
 
 ### 準備測試圖片
 
-將 PNG 圖片放置於專案根目錄：
+將 PNG 圖片放置於專案根目錄(資料內涵lena.png)：
 
 ```bash
 cp /path/to/your/image.png ./
@@ -103,6 +103,8 @@ cp /path/to/your/image.png ./
 ### 執行壓縮實驗
 
 使用 `run_coolchic.sh` 腳本，支援四種執行模式：
+
+> note: 執行時的圖片名稱不含副檔名 (如 `lena` 非 `lena.png`)
 
 #### 模式 1: 單次執行
 
